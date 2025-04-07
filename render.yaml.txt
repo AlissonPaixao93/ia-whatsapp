@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: ia-whatsapp
+    env: python
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "python ia.py"
+    plan: free
