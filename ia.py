@@ -4,7 +4,9 @@ from flask import Flask, request, jsonify
 app = Flask(__name__)
 
 # SUA CHAVE AQUI:
-OPENAI_API_KEY = "sk-COLE-AQUI-SUA-CHAVE"
+import os
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+
 
 @app.route('/webhook', methods=['POST'])
 def webhook():
