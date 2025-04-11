@@ -3,43 +3,41 @@ from flask import Flask, request, jsonify
 
 app = Flask(__name__)
 
-ZAPI_URL = 'https://api.z-api.io/instances/SEU_ID/token/SEU_TOKEN/send-message'
-OPENAI_API_KEY = 'sk-sua-chave-aqui'
-
-def gerar_resposta_chatgpt(mensagem_usuario):
-    url = "https://api.openai.com/v1/chat/completions"
-    headers = {
-        "Content-Type": "application/json",
-        "Authorization": f"Bearer {OPENAI_API_KEY}"
-    }
-    dados = {
-        "model": "gpt-3.5-turbo",
-        "messages": [
-            {"role": "system", "content": "Você é um atendente simpático da loja Exemplo Store. Responda como um humano, com empatia, emojis e naturalidade."},
-            {"role": "user", "content": mensagem_usuario}
-        ]
-    }
-    resposta = requests.post(url, headers=headers, json=dados)
-    conteudo = resposta.json()
-    return conteudo['choices'][0]['message']['content']
+# SUA CHAVE AQUI:
+OPENAI_API_KEY = "sk-COLE-AQUI-SUA-CHAVE"
 
 @app.route('/webhook', methods=['POST'])
-def receber_mensagem():
-    dados = request.json
-    mensagem = dados['messages'][0]['body']
-    numero = dados['messages'][0]['from']
+def webhook():
+    data = request.json
+    user_message = data.get("message")
+    user_number = data.get("from")
 
-    resposta_ia = gerar_resposta_chatgpt(mensagem)
+    # Consulta ao ChatGPT
+    gpt_response = chatgpt_responder(user_message)
 
+    # Retorna a resposta em JSON para testar
+    return jsonify({
+        "to": user_number,
+        "response": gpt_response
+    })
+
+def chatgpt_responder(texto):
+    url = "https://api.openai.com/v1/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {OPENAI_API_KEY}",
+        "Content-Type": "application/json"
+    }
     payload = {
-        "phone": numero,
-        "message": resposta_ia
+        "model": "gpt-3.5-turbo",
+        "messages": [
+            {"role": "system", "content": "Você é um atendente educado, simpático e prestativo. Responda como um humano."},
+            {"role": "user", "content": texto}
+        ]
     }
 
-    headers = {'Content-Type': 'application/json'}
-    requests.post(ZAPI_URL, json=payload, headers=headers)
+    resposta = requests.post(url, headers=headers, json=payload)
+    data = resposta.json()
+    return data['choices'][0]['message']['content']
 
-    return jsonify({"status": "Mensagem respondida com sucesso"})
-
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=10000)
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=10000)
